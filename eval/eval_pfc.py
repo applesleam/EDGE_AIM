@@ -26,14 +26,18 @@ def calc_physical_score(dir):
     it = glob.glob(os.path.join(dir, "*.pkl"))
 
     smpl = SMPLSkeleton()
+    debug_mode = False
+
     if len(it) > 1000:
         it = random.sample(it, 1000)
+
     for pkl in tqdm(it):
         info = pickle.load(open(pkl, "rb"))
 
         if "full_pose" in info.keys():
             joint3d = info["full_pose"]
         else:
+            # for GT pkl
             root_pos = torch.Tensor(info["pos"])   # N x 3
             local_q = torch.Tensor(info["q"])      # N x 72
 
@@ -59,12 +63,11 @@ def calc_physical_score(dir):
             )  # basically (y, z) -> (-z, y), expressed as a rotation for readability
             
             positions = smpl.forward(local_q, root_pos).detach().cpu().numpy()
-            # import pdb
-            # pdb.set_trace()
             joint3d = positions[0]
 
-        # for pose debug
-        skeleton_render(
+        # visualiaztion for pose debug
+        if debug_mode:
+            skeleton_render(
                 joint3d,
                 out="renders",
                 name=pkl,
@@ -74,7 +77,6 @@ def calc_physical_score(dir):
         root_v = (joint3d[1:, 0, :] - joint3d[:-1, 0, :]) / DT  # root velocity (S-1, 3)
         root_a = (root_v[1:] - root_v[:-1]) / DT  # (S-2, 3) root accelerations
         # clamp the up-direction of root acceleration
-        # ignore the negative acceleration?? -- WQ
         root_a[:, up_dir] = np.maximum(root_a[:, up_dir], 0)  # (S-2, 3)
         # l2 norm
         root_a = np.linalg.norm(root_a, axis=-1)  # (S-2,)
