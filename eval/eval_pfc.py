@@ -38,8 +38,9 @@ def calc_physical_score(dir):
             joint3d = info["full_pose"]
         else:
             # for GT pkl
-            root_pos = torch.Tensor(info["pos"])   # N x 3
-            local_q = torch.Tensor(info["q"])      # N x 72
+            # down-sampling the frames for gt is 60fps and edge is 30fps
+            root_pos = torch.Tensor(info["pos"][0::2, :])   # N x 3
+            local_q = torch.Tensor(info["q"][0::2, :])      # N x 72
 
             # to ax
             sq, c = local_q.shape
