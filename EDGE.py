@@ -137,6 +137,7 @@ class EDGE:
                 backup_path=opt.processed_data_dir,
                 train=True,
                 force_reload=opt.force_reload,
+                feature_type=opt.feature_type
             )
             test_dataset = AISTPPDataset(
                 data_path=opt.data_path,
@@ -144,6 +145,7 @@ class EDGE:
                 train=False,
                 normalizer=train_dataset.normalizer,
                 force_reload=opt.force_reload,
+                feature_type=opt.feature_type
             )
             # cache the dataset in case
             if self.accelerator.is_main_process:
